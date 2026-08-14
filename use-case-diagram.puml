@@ -1,0 +1,68 @@
+@startuml use-case-diagram
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Student" as Student
+actor "Warden" as Warden
+actor "Authentication Service /\nValidator" as Auth
+actor "Notification & Record\nModules" as NotifyModule
+
+rectangle "Hostel Management System" {
+
+  usecase "Login" as UC_Login
+  usecase "Validate login" as UC_Validate
+
+  usecase "Register complaint" as UC_Complaint
+  usecase "Notify student" as UC_Notify
+
+  usecase "Check room availability" as UC_CheckRoom
+
+  usecase "Book room" as UC_BookRoom
+  usecase "Search rooms" as UC_SearchRooms
+
+  usecase "Pay fees" as UC_PayFees
+  usecase "Get fee receipt" as UC_FeeReceipt
+
+  usecase "Apply for leave" as UC_ApplyLeave
+
+  usecase "Approve leave" as UC_ApproveLeave
+  usecase "Allocate room" as UC_AllocateRoom
+  usecase "Manage students" as UC_ManageStudents
+  usecase "Generate reports" as UC_GenerateReports
+
+  ' Student use cases
+  Student --> UC_Login
+  Student --> UC_Complaint
+  Student --> UC_CheckRoom
+  Student --> UC_BookRoom
+  Student --> UC_PayFees
+  Student --> UC_ApplyLeave
+
+  ' Warden use cases
+  Warden --> UC_ApproveLeave
+  Warden --> UC_AllocateRoom
+  Warden --> UC_ManageStudents
+  Warden --> UC_GenerateReports
+
+  ' Include / Extend relationships
+  UC_Login .down.> UC_Validate : <<include>>
+  UC_PayFees .down.> UC_FeeReceipt : <<include>>
+
+  UC_Complaint .down.> UC_Notify : <<extend>>
+  UC_BookRoom .down.> UC_SearchRooms : <<extend>>
+
+  ' System actor interactions
+  UC_Validate ..> Auth
+  UC_SearchRooms ..> NotifyModule
+  UC_Notify ..> NotifyModule
+
+  ' Warden-side actions linked to student-initiated flows
+  UC_ApplyLeave ..> UC_ApproveLeave
+  UC_BookRoom ..> UC_AllocateRoom
+  UC_Complaint ..> UC_ManageStudents
+  UC_PayFees ..> UC_GenerateReports
+}
+
+@enduml
