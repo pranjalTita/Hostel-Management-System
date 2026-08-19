@@ -1,0 +1,102 @@
+@startuml Hostel_Management_Domain_Class_Diagram
+
+skinparam classAttributeIconSize 0
+skinparam classFontStyle Bold
+skinparam shadowing false
+hide circle
+
+title Hostel Management System — Domain Class Diagram
+
+class Student {
+  -studentId: String
+  -name: String
+  -enrollmentDetails: String
+  -contactNumber: String
+  -email: String
+  --
+  +requestBooking(): Booking
+  +viewRoomDetails(): Room
+  +viewFeeDetails(): Fee
+  +submitLeaveRequest(): Leave
+  +viewPaymentHistory(): List<Payment>
+}
+
+class Room {
+  -roomNumber: String
+  -block: String
+  -floor: int
+  -sharingType: String
+  -capacity: int
+  -availabilityStatus: boolean
+  --
+  +checkAvailability(): boolean
+  +updateOccupancy(): void
+  +getRoomInfo(): String
+}
+
+class Booking {
+  -bookingId: String
+  -bookingDate: Date
+  -moveInDate: Date
+  -duration: int
+  -status: String
+  --
+  +createBooking(): void
+  +confirmBooking(): void
+  +cancelBooking(): void
+  +updateRoomAvailability(): void
+  +triggerFeeGeneration(): Fee
+}
+
+class Fee {
+  -feeId: String
+  -amount: double
+  -dueDate: Date
+  -category: String
+  -outstandingAmount: double
+  -paidStatus: boolean
+  --
+  +calculateFee(): double
+  +updateOutstandingAmount(): void
+  +linkPayment(p: Payment): void
+  +getFeeStatus(): String
+}
+
+class Payment {
+  -paymentId: String
+  -transactionId: String
+  -amount: double
+  -paymentDate: Date
+  -paymentMethod: String
+  -paymentStatus: String
+  --
+  +makePayment(): void
+  +generateReceipt(): String
+  +updateFeeStatus(): void
+  +verifyTransaction(): boolean
+}
+
+class Leave {
+  -leaveId: String
+  -fromDate: Date
+  -toDate: Date
+  -reason: String
+  -status: String
+  --
+  +applyLeave(): void
+  +approveLeave(): void
+  +rejectLeave(): void
+  +notifyStatusChange(): void
+}
+
+' ===== Associations with multiplicities =====
+
+Student "1" -- "0..*" Booking : makes >
+Room "1" -- "0..*" Booking : booked in >
+Booking "1" -- "0..1" Fee : generates >
+Student "1" -- "0..*" Fee : owes >
+Fee "1" -- "0..*" Payment : settled by >
+Student "1" -- "0..*" Payment : makes >
+Student "1" -- "0..*" Leave : submits >
+
+@enduml
