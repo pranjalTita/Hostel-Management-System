@@ -1,0 +1,183 @@
+@startuml HostelManagementSystem_DomainClassDiagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+hide circle
+
+' =========================================================
+' HOSTEL MANAGEMENT SYSTEM - DOMAIN CLASS DIAGRAM
+' =========================================================
+
+abstract class User {
+  # userId : String
+  # name : String
+  # email : String
+  # password : String
+  # contactNumber : String
+  # role : String
+  + login(email : String, password : String) : boolean
+  + logout() : void
+  + updateProfile() : void
+  # validateCredentials() : boolean
+}
+
+class Admin {
+  - adminId : String
+  - designation : String
+  + addWarden(w : Warden) : void
+  + removeWarden(wardenId : String) : void
+  + generateReport(type : String) : Report
+  + publishNotice(n : Notice) : void
+}
+
+class Warden {
+  - wardenId : String
+  - assignedBlock : String
+  + approveAllocation(a : RoomAllocation) : boolean
+  + rejectAllocation(a : RoomAllocation) : boolean
+  + resolveComplaint(c : Complaint) : void
+  + markAttendance(s : Student, status : String) : void
+}
+
+class Student {
+  - studentId : String
+  - course : String
+  - yearOfStudy : int
+  - guardianName : String
+  - guardianContact : String
+  - dateOfJoining : Date
+  + applyForRoom(pref : String) : RoomAllocation
+  + payFee(amount : double, mode : String) : FeePayment
+  + lodgeComplaint(desc : String, category : String) : Complaint
+  + registerVisitor(v : Visitor) : void
+  + viewNotices() : List
+}
+
+class Hostel {
+  - hostelId : String
+  - hostelName : String
+  - address : String
+  - totalCapacity : int
+  - warden_in_charge : String
+  + addBlock(b : Block) : void
+  + getAvailableRooms() : List
+  + getOccupancyRate() : double
+}
+
+class Block {
+  - blockId : String
+  - blockName : String
+  - floorCount : int
+  - blockType : String
+  + addRoom(r : Room) : void
+  + getRoomCount() : int
+}
+
+class Room {
+  - roomId : String
+  - roomNumber : String
+  - capacity : int
+  - roomType : String
+  - status : String
+  + checkAvailability() : boolean
+  + updateStatus(status : String) : void
+}
+
+class Bed {
+  - bedId : String
+  - bedNumber : String
+  - isOccupied : boolean
+  + assignToStudent(s : Student) : void
+  + vacate() : void
+}
+
+class RoomAllocation {
+  - allocationId : String
+  - allocationDate : Date
+  - vacateDate : Date
+  - status : String
+  + approve() : void
+  + cancel() : void
+  + renew() : RoomAllocation
+}
+
+class FeePayment {
+  - paymentId : String
+  - amount : double
+  - paymentDate : Date
+  - paymentMode : String
+  - status : String
+  + generateReceipt() : Receipt
+  + verifyPayment() : boolean
+  + refund() : void
+}
+
+class Complaint {
+  - complaintId : String
+  - description : String
+  - category : String
+  - dateRaised : Date
+  - status : String
+  + escalate() : void
+  + close(remarks : String) : void
+}
+
+class Attendance {
+  - attendanceId : String
+  - date : Date
+  - status : String
+  + markPresent() : void
+  + markAbsent() : void
+}
+
+class Visitor {
+  - visitorId : String
+  - name : String
+  - relationToStudent : String
+  - purpose : String
+  - checkInTime : DateTime
+  - checkOutTime : DateTime
+  + checkIn() : void
+  + checkOut() : void
+}
+
+class Notice {
+  - noticeId : String
+  - title : String
+  - content : String
+  - datePosted : Date
+  + publish() : void
+  + expire() : void
+}
+
+' =========================================================
+' INHERITANCE
+' =========================================================
+User <|-- Admin
+User <|-- Warden
+User <|-- Student
+
+' =========================================================
+' ASSOCIATIONS WITH MULTIPLICITY
+' =========================================================
+Admin        "1"   -- "0..*"  Warden        : manages >
+Admin        "1"   -- "0..*"  Notice        : publishes >
+Hostel       "1"   *-- "1..*" Block         : contains
+Block        "1"   *-- "1..*" Room          : contains
+Room         "1"   *-- "1..*" Bed           : contains
+Warden       "1"   -- "0..1"  Block         : supervises >
+
+Student      "1"   -- "0..*"  RoomAllocation : requests >
+Warden       "1"   -- "0..*"  RoomAllocation : approves >
+RoomAllocation "0..*" -- "1"  Room          : allocated to >
+RoomAllocation "0..1" -- "1"  Bed           : reserves >
+
+Student      "1"   -- "0..*"  FeePayment    : makes >
+Student      "1"   -- "0..*"  Complaint     : lodges >
+Warden       "1"   -- "0..*"  Complaint     : resolves >
+Student      "1"   -- "0..*"  Attendance    : has >
+Warden       "1"   -- "0..*"  Attendance    : records >
+Student      "1"   -- "0..*"  Visitor       : hosts >
+Hostel       "1"   -- "0..*"  Notice        : displays >
+Hostel       "1"   -- "0..*"  Student       : accommodates >
+
+@enduml
