@@ -1,0 +1,103 @@
+@startuml hostel_management_class_diagram
+
+' ===== Style to mimic the reference image (rounded boxes, LR layout) =====
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+  RoundCorner 15
+}
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+hide circle
+left to right direction
+
+class Student {
+  - studentId : String
+  - name : String
+  - email : String
+  - password : String
+  - contactNumber : String
+  - enrollmentDate : Date
+  --
+  + login(password : String) : boolean
+  + requestBooking(room) : Booking
+  + viewRoomDetails() : void
+  + viewFeeDetails() : void
+  + submitLeaveRequest(leave) : void
+  + viewPaymentHistory() : void
+}
+
+class Room {
+  - roomNumber : String
+  - type : String
+  - capacity : int
+  - floor : String
+  - status : RoomStatus
+  --
+  + checkAvailability() : boolean
+  + updateOccupancy(status) : void
+  + getRoomInfo() : void
+}
+
+class Booking {
+  - bookingId : String
+  - bookingDate : Date
+  - duration : int
+  - status : BookingStatus
+  --
+  + createBooking() : void
+  + confirmBooking() : void
+  + cancelBooking() : void
+  + updateRoomAvailability() : void
+  + triggerFeeGeneration() : Fee
+}
+
+class Fee {
+  - feeId : String
+  - amount : double
+  - dueDate : Date
+  - category : String
+  - outstandingAmount : double
+  - paidAmount : double
+  --
+  + calculateFee() : double
+  + updateOutstanding(amount) : void
+  + linkPayment(payment) : void
+}
+
+class Payment {
+  - paymentId : String
+  - amount : double
+  - date : Date
+  - mode : String
+  - transactionId : String
+  --
+  + recordPayment() : void
+  + updateFeeStatus() : void
+  + generateReceipt() : Receipt
+}
+
+class Leave {
+  - leaveId : String
+  - fromDate : Date
+  - toDate : Date
+  - reason : String
+  - status : LeaveStatus
+  --
+  + submitLeave() : void
+  + approveLeave() : void
+  + rejectLeave() : void
+  + notifyStatusChange() : void
+}
+
+' ===== Relationships (matching CRC card collaborators & class relationships) =====
+Student "1" -- "0..*" Booking : makes
+Room "1" -- "0..*" Booking : has
+Booking "1" -- "1" Fee : generates
+Fee "1" -- "0..*" Payment : includes
+Student "1" -- "0..*" Leave : submits
+Student "1" -- "0..*" Fee : views
+Student "1" -- "0..*" Payment : tracks
+
+@enduml
