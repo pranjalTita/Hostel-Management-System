@@ -1,0 +1,87 @@
+@startuml HMS_Object_Diagram
+
+title Hostel Management System — Object Diagram\nScenario: Aarav books a room, pays his fee, and files a complaint
+
+object "aarav : Student" as aarav {
+  studentId = "STU2026041"
+  name = "Aarav Sharma"
+  email = "aarav.sharma@hostel.edu"
+  phone = "+91-98765-43210"
+  roomId = "R-204"
+  feeStatus = "PAID"
+}
+
+object "room204 : Room" as room204 {
+  roomId = "R-204"
+  block = "B-Block"
+  floor = 2
+  capacity = 2
+  occupied = 2
+  status = "OCCUPIED"
+}
+
+object "warden1 : Warden" as warden1 {
+  wardenId = "WD-07"
+  name = "Mr. Suresh Nair"
+  block = "B-Block"
+}
+
+object "auth1 : AuthenticationService" as auth1 {
+  sessionId = "SESS-88213"
+  username = "aarav.sharma"
+  status = "VALIDATED"
+  timestamp = "2026-08-19 09:12:00"
+}
+
+object "payment1 : Payment" as payment1 {
+  transactionId = "TXN-556231"
+  studentId = "STU2026041"
+  amount = 25000.00
+  currency = "INR"
+  method = "UPI"
+  status = "SUCCESS"
+  date = "2026-08-19"
+}
+
+object "gateway1 : PaymentGateway" as gateway1 {
+  gatewayId = "PG-RAZORPAY"
+  responseCode = "200-OK"
+  receiptNo = "RCPT-90441"
+}
+
+object "complaint1 : Complaint" as complaint1 {
+  complaintId = "CMP-3321"
+  studentId = "STU2026041"
+  roomId = "R-204"
+  category = "Electrical"
+  description = "Ceiling fan not working"
+  status = "OPEN"
+  raisedOn = "2026-08-19"
+}
+
+object "notif1 : Notification" as notif1 {
+  notificationId = "NOTIF-77102"
+  type = "FEE_RECEIPT"
+  channel = "Email/SMS"
+  message = "Payment of INR 25000 received. Receipt RCPT-90441."
+  sentTo = "aarav.sharma@hostel.edu"
+}
+
+object "reminder1 : FeeDueReminderScheduler" as reminder1 {
+  jobId = "JOB-FEE-DAILY"
+  lastRun = "2026-08-19 06:00:00"
+  studentsChecked = 340
+  remindersSent = 12
+}
+
+aarav --> auth1 : authenticated by
+aarav --> room204 : occupies
+aarav --> payment1 : makes
+payment1 --> gateway1 : processed via
+gateway1 --> notif1 : triggers
+aarav --> complaint1 : raises
+complaint1 --> warden1 : assigned to
+warden1 --> room204 : manages
+reminder1 --> aarav : checks fee status of
+
+@enduml
