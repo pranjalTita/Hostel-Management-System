@@ -7,7 +7,8 @@
 - Fee
 - Payment
 - Leave
-
+- Attendance
+- Friend
 ---
 
 ## 2. CRC Cards
@@ -20,11 +21,16 @@
 - View assigned room and fee details.
 - Submit a leave request.
 - Track own payment history.
+- Register and manage friend/visitor details.
+- View own attendance record.
+- Calculate own attendance percentage from Attendance records.
 
 *Collaborators:*
 - Booking
 - Fee
 - Leave
+- Attendance
+- Friend
 
 ---
 
@@ -93,7 +99,35 @@
 - Represent a student's leave request.
 - Store leave details (dates, reason, duration).
 - Track the current status of the request (pending, approved, rejected).
-- Notify relevant parties on status change.
+- Record the decision made by the Warden/Admin and notify the student of status changes.
+
+*Collaborators:*
+- Student
+
+---
+
+### Attendance
+
+*Responsibilities:*
+- Record a student's daily attendance.
+- Store attendance date and status (Present/Absent).
+- Update attendance records when required.
+- Provide attendance information for a student.
+
+*Collaborators:*
+- Student
+
+---
+
+### Friend
+
+*Responsibilities:*
+- Store visitor details such as name, contact number, and identification details.
+- Record the student whom the friend wants to visit.
+- Store visit date and time.
+- Record the purpose of the visit.
+- Maintain visitor entry and exit information.
+- Track the current status of the visit.
 
 *Collaborators:*
 - Student
@@ -102,9 +136,17 @@
 
 ## 3. Class Relationships
 
-- A Student can make one or more Bookings.
-- A Booking is associated with exactly one Room.
-- A Booking generates a Fee for the Student.
-- A Fee can have one or more Payments made against it.
-- A Student can submit one or more Leave requests.
-- Room availability updates whenever a Booking is created, cancelled, or completed.
+-   A Student can make one or more Bookings.
+-   A Booking is associated with exactly one Room.
+-   A confirmed Booking results in a Fee being generated for the
+    Student.
+-   A Fee can have one or more Payments made against it.
+-   A Student can submit one or more Leave requests.
+-   A Student can have multiple Attendance records.
+-   Each Attendance record belongs to one Student.
+-   A Student can register one or more Friends as visitors.
+-   A Friend can visit a Student at the hostel.
+-   A Friend visit records the visit date, time, purpose, and entry/exit
+    details.
+-   Room availability updates whenever a Booking is created, cancelled,
+    or completed.
