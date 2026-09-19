@@ -3,6 +3,13 @@
 left to right direction
 skinparam packageStyle rectangle
 skinparam actorStyle awesome
+skinparam shadowing false
+skinparam roundCorner 10
+skinparam ArrowColor #444444
+skinparam usecase {
+  BackgroundColor #E8F1FB
+  BorderColor #2F6DB5
+}
 
 actor "Student" as Student
 actor "Warden" as Warden
@@ -11,58 +18,52 @@ actor "Notification & Record\nModules" as NotifyModule
 
 rectangle "Hostel Management System" {
 
+  ' ---- Student ----
   usecase "Login" as UC_Login
   usecase "Validate login" as UC_Validate
-
-  usecase "Register complaint" as UC_Complaint
-  usecase "Notify student" as UC_Notify
-
   usecase "Check room availability" as UC_CheckRoom
-
   usecase "Book room" as UC_BookRoom
-  usecase "Search rooms" as UC_SearchRooms
-
   usecase "Pay fees" as UC_PayFees
   usecase "Get fee receipt" as UC_FeeReceipt
-
   usecase "Apply for leave" as UC_ApplyLeave
+  usecase "View attendance" as UC_ViewAtt
+  usecase "Register visitor" as UC_RegVisitor
 
+  ' ---- Warden ----
   usecase "Approve leave" as UC_ApproveLeave
+  usecase "Notify student" as UC_Notify
   usecase "Allocate room" as UC_AllocateRoom
+  usecase "Mark attendance" as UC_MarkAtt
+  usecase "Manage visitor\nentry / exit" as UC_VisitorLog
   usecase "Manage students" as UC_ManageStudents
   usecase "Generate reports" as UC_GenerateReports
 
   ' Student use cases
-  Student --> UC_Login
-  Student --> UC_Complaint
-  Student --> UC_CheckRoom
-  Student --> UC_BookRoom
-  Student --> UC_PayFees
-  Student --> UC_ApplyLeave
+  Student -right-> UC_Login
+  Student -right-> UC_CheckRoom
+  Student -right-> UC_BookRoom
+  Student -right-> UC_PayFees
+  Student -right-> UC_ApplyLeave
+  Student -right-> UC_ViewAtt
+  Student -right-> UC_RegVisitor
 
   ' Warden use cases
-  Warden --> UC_ApproveLeave
-  Warden --> UC_AllocateRoom
-  Warden --> UC_ManageStudents
-  Warden --> UC_GenerateReports
+  Warden -right-> UC_ApproveLeave
+  Warden -right-> UC_AllocateRoom
+  Warden -right-> UC_MarkAtt
+  Warden -right-> UC_VisitorLog
+  Warden -right-> UC_ManageStudents
+  Warden -right-> UC_GenerateReports
 
-  ' Include / Extend relationships
+  ' Include relationships
   UC_Login .down.> UC_Validate : <<include>>
   UC_PayFees .down.> UC_FeeReceipt : <<include>>
-
-  UC_Complaint .down.> UC_Notify : <<extend>>
-  UC_BookRoom .down.> UC_SearchRooms : <<extend>>
-
-  ' System actor interactions
-  UC_Validate ..> Auth
-  UC_SearchRooms ..> NotifyModule
-  UC_Notify ..> NotifyModule
-
-  ' Warden-side actions linked to student-initiated flows
-  UC_ApplyLeave ..> UC_ApproveLeave
-  UC_BookRoom ..> UC_AllocateRoom
-  UC_Complaint ..> UC_ManageStudents
-  UC_PayFees ..> UC_GenerateReports
+  UC_BookRoom .down.> UC_CheckRoom : <<include>>
+  UC_ApproveLeave .down.> UC_Notify : <<include>>
 }
+
+' System actor interactions
+UC_Validate .right. Auth
+UC_Notify .right. NotifyModule
 
 @enduml
