@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hostel House · Resident portal</title>
+<style>
+:root{font:16px/1.5 "Segoe UI",Arial,sans-serif;color:#253a34;background:#f5f5ed;--green:#164c3c;--line:#d5dcd1}
+*{box-sizing:border-box}body{margin:0}header{display:flex;align-items:center;justify-content:space-between;padding:16px max(5vw,20px);background:#fff;border-bottom:1px solid var(--line)}header strong{font: bold 24px Georgia,serif}header strong:before{content:"⌂";display:inline-grid;place-items:center;background:var(--green);color:white;width:38px;height:38px;border-radius:9px;margin-right:10px}.board{background:#e1ebd9;padding:10px max(5vw,20px);font-size:14px}.board summary{cursor:pointer}.board li{overflow-wrap:anywhere}main{max-width:1100px;margin:42px auto;padding:0 22px}h1,h2,h3{font-family:Georgia,serif;line-height:1.15;margin:0 0 16px}h1{font-size:clamp(32px,5vw,58px);font-weight:500}h2{font-size:24px}h3{font-size:19px}p{margin:8px 0;color:#495c53}.layout{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px;align-items:start}.card,.access{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px;overflow-wrap:anywhere}.access{max-width:490px;margin:0 auto}.tabs,.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.tabs{background:#eff2eb;padding:4px;border-radius:10px;margin:18px 0}.tabs button{flex:1}button{border:1px solid var(--line);border-radius:7px;background:white;color:var(--green);padding:9px 14px;font:inherit;font-weight:600;cursor:pointer}button.active,form button[type=submit],.book{background:var(--green);color:white}button:disabled{opacity:.46;cursor:default}label{display:grid;gap:4px;font-size:14px;font-weight:600;margin:10px 0}input,select{font:inherit;padding:9px;border:1px solid #aab7ac;border-radius:6px;width:100%;background:white;color:inherit}form button{margin-top:5px}.rooms{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}.room{background:#eff4ed;border:1px solid var(--line);padding:12px;border-radius:9px}.room strong{display:block}.room button{margin-top:8px}.wide{margin:18px 0}.beds{display:flex;gap:4px;margin:8px 0}.beds i{width:24px;height:8px;border:1px solid #849a86;border-radius:3px;background:white}.beds i.used{background:#437664}progress{width:100%;accent-color:var(--green)}details.record{padding:14px 0;border-top:1px solid var(--line)}summary{cursor:pointer}small{color:#526459}#feedback:not(:empty){position:sticky;top:8px;z-index:2;background:#fff8d8;padding:12px;border:1px solid #cab878;border-radius:8px;margin-bottom:12px}.history{padding-left:20px}.subtitle{margin-bottom:20px}.access h1{font-size:38px}.switch{margin-top:16px}button:hover:enabled{filter:brightness(.94)}:focus-visible{outline:3px solid #c08427;outline-offset:2px}
+</style>
+<header><strong>Hostel House</strong><div id="session"></div></header>
+<div class="board" id="board">Notice board</div>
+<main><div id="feedback" role="status" aria-live="polite"></div><div id="app"></div></main>
+<script>
+'use strict';
+const app=document.querySelector('#app'), feedback=document.querySelector('#feedback');
+let token=sessionStorage.getItem('token'), role=sessionStorage.getItem('role')||'student', registering=false;
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=v=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR'}).format(v);
+async function api(path,data){
+ const headers={}; if(token) headers.Authorization='Bearer '+token;
+ const opts={headers}; if(data){headers['Content-Type']='application/json';opts.method='POST';opts.body=JSON.stringify(data)}
+ const res=await fetch('/api/'+path,opts), result=await res.json();
+ if(!res.ok){if(res.status===401 && token){clearSession();access()}throw Error(result.error)}return result;
+}
+function clearSession(){token=null;sessionStorage.removeItem('token');sessionStorage.removeItem('role')}
+async function notices(){
+ const list=await api('notices'), board=document.querySelector('#board');
+ const open=board.querySelector('details')?.open;
+ board.innerHTML=list.length?'<details '+(open?'open':'')+'><summary><b>Notice board</b> · '+esc(list.at(-1))+'</summary><ol>'+list.slice().reverse().map(n=>'<li>'+esc(n)+'</li>').join('')+'</ol></details>':'<b>Notice board</b> · No notices posted';
+}
+function input(key,label,type='text',attrs=''){return '<label>'+label+'<input required name="'+key+'" type="'+type+'" '+attrs+'></label>'}
+function form(path,body,button,id=''){return '<form data-path="'+path+'">'+(id?'<input type="hidden" name="id" value="'+id+'">':'')+body+'<button type="submit">'+button+'</button></form>'}
+const idField=input('id','Student ID (10000–10100)','number','min="10000" max="10100"');
+const details=(s={})=>input('name','Full name','text','value="'+esc(s.name)+'"')+input('course','Course','text','value="'+esc(s.course)+'"');
+function access(){
+ document.querySelector('#session').innerHTML='';
+ const student=role==='student';
+ app.innerHTML='<section class="access"><h1>Hostel portal</h1><div class="tabs">'+['student','warden'].map(r=>'<button data-role="'+r+'" class="'+(r===role?'active':'')+'" aria-pressed="'+(r===role)+'">'+(r==='student'?'Student':'Warden')+' Portal</button>').join('')+'</div><h2>'+(student&&registering?'Student registration':'Sign in')+'</h2>'+
+ (student? form(registering?'register':'student/login',idField+(registering?details():''),registering?'Register student':'Sign in')+'<button class="switch" data-switch>'+ (registering?'Use an existing student ID':'Register a new student')+'</button>':
+ form('warden/login',input('id','Warden ID (1001–1002)','number','min="1001" max="1002"')+input('password','Password','password','autocomplete="current-password"'),'Sign in'))+'</section>';
+}
+function rooms(list,student){
+ return '<section class="card wide"><h2>Room availability</h2><div class="rooms">'+list.map(r=>'<div class="room"><strong>Room '+r.number+'</strong><div class="beds" aria-hidden="true">'+[0,1].map(i=>'<i class="'+(i<2-r.free?'used':'')+'"></i>').join('')+'</div><small>'+r.free+' of 2 beds free</small>'+(student?(student.room===r.number?'<p>Your room</p>':!student.room&&r.free?form('book','<input type="hidden" name="room" value="'+r.number+'">','Book bed'):''):'')+'</div>').join('')+'</div></section>';
+}
+function card(title,body){return '<section class="card"><h2>'+title+'</h2>'+body+'</section>'}
+function fee(f){
+ return '<p><strong>'+money(f.due)+'</strong> outstanding · '+(f.due===0?'Paid':'Pending')+'</p><progress aria-label="Semester fee paid" max="'+f.total+'" value="'+(f.total-f.due)+'"></progress><small>'+money(f.total-f.due)+' paid of '+money(f.total)+' · '+esc(f.period)+'</small>';
+}
+function history(f){return '<h3 class="wide">Payment history</h3>'+(f.payments.length?'<ol class="history">'+f.payments.map(p=>'<li>'+money(p.amount)+' · '+esc(p.mode)+' · Ref. '+esc(p.transaction)+'</li>').join('')+'</ol>':'<p>No payments recorded.</p>')}
+function requestSummary(s,key){
+ const r=s[key];if(!r)return '<p>No '+key+' request.</p>';
+ return '<p><b>'+esc(r.status)+'</b> · '+(key==='leave'?esc(r.from)+' to '+esc(r.to)+' · '+esc(r.reason):esc(r.name))+'</p>';
+}
+function studentView(s,list){
+ const f=s.fee;
+ return '<h1>'+esc(s.name)+'</h1><p class="subtitle">Student '+s.id+' · '+esc(s.course)+' · '+(s.room?'Room '+s.room:'Room not allotted')+' · Attendance: '+esc(s.attendance)+'</p>'+rooms(list,s)+'<div class="layout">'+
+ card('Semester fee',fee(f)+(f.due>0?form('pay',input('amount','Payment amount (₹)','number','step="0.01" min="0.01" max="'+f.due+'"')+'<label>Payment mode<select name="mode"><option>Cash</option><option>UPI</option><option>Bank</option></select></label>'+input('transaction','Transaction / reference ID'),'Record payment'):'')+history(f))+
+ card('Leave request',requestSummary(s,'leave')+form('leave',input('from','From','date')+input('to','To','date')+input('reason','Reason'),'Submit leave'))+
+ card('Visitor request',requestSummary(s,'visitor')+form('visitor',input('name','Visitor name'),'Register visitor'))+'</div>';
+}
+function review(s,key){return '<h3 class="wide">'+(key==='leave'?'Leave':'Visitor')+'</h3>'+requestSummary(s,key)+(s[key]?.status==='Pending'?'<div class="actions">'+['Approved','Rejected'].map(d=>form('warden/'+key,'<input type="hidden" name="decision" value="'+d+'">',d==='Approved'?'Approve':'Reject',s.id)).join('')+'</div>':'')}
+function record(s){return '<details class="record"><summary><b>'+esc(s.name)+'</b> · '+s.id+' · '+(s.room?'Room '+s.room:'Unallotted')+'</summary>'+form('warden/edit',details(s),'Save details',s.id)+
+ '<h3 class="wide">Attendance</h3><p>'+esc(s.attendance)+'</p>'+form('warden/attendance','<label>Mark attendance<select name="status"><option>Present</option><option>Absent</option></select></label>','Save attendance',s.id)+review(s,'leave')+review(s,'visitor')+'<h3 class="wide">Semester fee</h3>'+fee(s.fee)+history(s.fee)+'</details>'}
+function wardenView(students,list){
+ return '<h1>Warden dashboard</h1><p>'+students.length+' of 10 students registered</p>'+rooms(list)+'<div class="layout">'+
+ card('Student directory',students.length?students.map(record).join(''):'<p>No students registered.</p>')+card('Register a student',form('warden/register',idField+details(),'Register student'))+card('Post a notice',form('warden/notice',input('message','Notice for residents'),'Post notice'))+'</div>';
+}
+async function render(){
+ if(!token){access();return}
+ const student=role==='student';
+ const [data,list]=await Promise.all([api(student?'profile':'warden/students'),api('rooms')]);
+ const opened=[...app.querySelectorAll('details.record')].findIndex(el=>el.open);
+ app.innerHTML=student?studentView(data,list):wardenView(data,list);
+ if(opened>=0 && app.querySelectorAll('details.record')[opened])app.querySelectorAll('details.record')[opened].open=true;
+ document.querySelector('#session').innerHTML='<button data-refresh>Refresh</button> <button data-logout>Sign out</button>';
+}
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('button');if(!b)return;
+ try{
+ if(b.dataset.role){if(b.dataset.role==='warden')await api('warden/start',{});role=b.dataset.role;registering=false;feedback.textContent='';access()}
+ if(b.hasAttribute('data-switch')){registering=!registering;feedback.textContent='';access()}
+ if(b.hasAttribute('data-logout')){await api('logout',{});clearSession();registering=false;feedback.textContent='';access()}
+ if(b.hasAttribute('data-refresh')){await render();await notices()}
+ }catch(err){feedback.textContent=err.message}
+});
+document.addEventListener('submit',async e=>{
+ e.preventDefault();const f=e.target, button=f.querySelector('button'), path=f.dataset.path;
+ button.disabled=true;feedback.textContent='';
+ try{
+ const data=Object.fromEntries(new FormData(f));
+ if(path==='leave'&&data.to<data.from)throw Error('End date must be on or after the start date.');
+ const result=await api(path,data);
+ if(result.token){token=result.token;role=result.role;sessionStorage.setItem('token',token);sessionStorage.setItem('role',role)}
+ await render();await notices();
+ feedback.textContent=path==='pay'?'Payment receipt · '+result.student+' ('+result.id+') · '+money(result.amount)+' · '+result.mode+' · Ref. '+result.transaction:result.token?'':'Saved.';
+ }catch(err){feedback.textContent=err.message}finally{button.disabled=false}
+});
+render().catch(e=>feedback.textContent=e.message);
+notices().catch(e=>feedback.textContent=e.message);
+setInterval(()=>notices().catch(()=>{}),15000);
+</script></html>
