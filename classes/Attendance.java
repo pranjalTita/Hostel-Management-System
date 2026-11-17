@@ -1,4 +1,6 @@
+package classes;
 // Attendance class
+
 class Attendance {
     private int attendanceId;
     private Student student;
@@ -37,6 +39,4 @@ class Attendance {
         System.out.println("Warden: " + wardenName);
     }
 }
-
-
-// Ishit Vora
+// ishit vora

@@ -1,4 +1,6 @@
+package classes;
 // Leave class
+
 class Leave {
     private Student student;
     private String fromDate;

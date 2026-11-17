@@ -1,3 +1,4 @@
+package classes;
 // Parent class
 class HostelMember {
     protected String name;
@@ -12,3 +13,4 @@ class HostelMember {
         System.out.println("I am a hostel member.");
     }
 }
+//pranjal

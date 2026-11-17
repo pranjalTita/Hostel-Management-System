@@ -1,4 +1,6 @@
+package classes;
 // Booking class
+
 class Booking {
     private Student student;
     private Room room;
@@ -24,3 +26,4 @@ class Booking {
         System.out.println("Booking cancelled.");
     }
 }
+// pranjal tita
