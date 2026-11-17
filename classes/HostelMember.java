@@ -1,3 +1,4 @@
+package classes;
 // Parent class
 class HostelMember {
     protected String name;

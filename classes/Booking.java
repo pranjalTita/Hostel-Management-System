@@ -1,4 +1,6 @@
+package classes;
 // Booking class
+
 class Booking {
     private Student student;
     private Room room;

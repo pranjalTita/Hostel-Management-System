@@ -1,4 +1,6 @@
+package classes;
 // Student class
+
 class Student extends HostelMember {
     private String course;
 

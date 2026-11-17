@@ -1,4 +1,6 @@
+package classes;
 // Attendance class
+
 class Attendance {
     private int attendanceId;
     private Student student;

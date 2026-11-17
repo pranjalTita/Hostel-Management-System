@@ -1,4 +1,6 @@
+package classes;
 // Payment class
+
 class Payment {
     private Student student;
     private Fee fee;

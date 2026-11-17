@@ -1,4 +1,6 @@
+package classes;
 // Friend / Visitor class
+
 class Friend {
     private int visitorId;
     private String name;
