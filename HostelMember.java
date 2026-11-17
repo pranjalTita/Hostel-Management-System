@@ -12,3 +12,4 @@ class HostelMember {
         System.out.println("I am a hostel member.");
     }
 }
+// pranjal
