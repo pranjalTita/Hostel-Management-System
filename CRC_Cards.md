@@ -1,152 +1,194 @@
 # CRC Cards - Hostel Management System
 
 ## 1. Surviving Classes
+- HostelMember (abstract)
 - Student
+- Warden
 - Room
 - Booking
 - Fee
 - Payment
 - Leave
-- Attendance
-- Friend
+- Visitor
+- HostelNoticeBoard
+- NotificationThread
+
+Note: Attendance is stored as a field of Student (Present / Absent / Not marked), so it is not a separate class. `HostelManagementSystem` is the main class that holds the menus; it is not a domain class.
+
 ---
 
 ## 2. CRC Cards
 
-### Student
+### HostelMember (abstract)
 
 *Responsibilities:*
-- Store personal and enrollment details of the student.
-- Request a room booking.
-- View assigned room and fee details.
-- Submit a leave request.
-- Track own payment history.
-- Register and manage friend/visitor details.
-- View own attendance record.
-- Calculate own attendance percentage from Attendance records.
+- Keep name, ID and password private (encapsulation) and give access through methods.
+- Validate that the name is not blank and the ID is positive.
+- Check a password, reset it (at least 6 characters) and change it after verifying the current one.
+- Force every subclass to define its role through the abstract method showRole().
 
 *Collaborators:*
-- Booking
+- Student
+- Warden
+
+---
+
+### Student (extends HostelMember)
+
+*Responsibilities:*
+- Store course and validate that the student ID is between 1 and 100.
+- Hold the allotted Room and its own Fee record.
+- Keep the list of own Payments.
+- Submit a leave request and register a visitor.
+- Store and show own attendance status.
+- Update name and course with validation.
+- Create a copy of itself with the copy constructor.
+
+*Collaborators:*
+- Room
 - Fee
+- Payment
 - Leave
-- Attendance
-- Friend
+- Visitor
+
+---
+
+### Warden (extends HostelMember)
+
+*Responsibilities:*
+- Define its role as Warden.
+- Log in with a warden ID (1001-1002) and password.
+- Represent the logged-in warden who manages the hostel (leave, visitors, attendance, notices, passwords, late penalty).
+
+*Collaborators:*
+- Student
+- Leave
+- Visitor
+- Fee
+- HostelNoticeBoard
 
 ---
 
 ### Room
 
 *Responsibilities:*
-- Store room details (number, type, capacity, floor).
-- Maintain current availability status.
-- Provide room information for a booking request.
-- Update occupancy when a booking is made or vacated.
+- Store room number, type, capacity (2, 3 or 4 sharing) and AC / Non-AC.
+- Calculate the semester fee of the room (2-sharing Rs. 50000, 3-sharing Rs. 40000, 4-sharing Rs. 35000, plus Rs. 15000 for AC).
+- Keep the list of students living in the room and report available beds.
+- Add or remove a student and update the student's room.
 
 *Collaborators:*
-- Booking
 - Student
+- Booking
+- Fee
 
 ---
 
 ### Booking
 
 *Responsibilities:*
-- Create and manage a student's room booking.
-- Associate a student with a specific room.
-- Store booking-related information (dates, duration, status).
-- Update room availability on confirmation or cancellation.
-- Trigger fee generation once a booking is confirmed.
+- Link one Student with the Room allotted to the student.
+- Check that the student and the room are not null.
+- Display the allotment message.
+- Provide the Student for a Payment created from a Booking.
 
 *Collaborators:*
 - Student
 - Room
-- Fee
+- Payment
 
 ---
 
 ### Fee
 
 *Responsibilities:*
-- Calculate and store the hostel fee associated with a student.
-- Maintain fee structure (amount, due date, category).
-- Track outstanding and paid amounts.
-- Link fee records to payments made against them.
+- Get the room fee from the student's Room (fee is fixed only after a room is booked).
+- Add the Rs. 500 late penalty once, when the Warden applies it.
+- Track the paid amount and calculate the outstanding amount.
+- Validate and add a payment (room must be booked, amount above zero and not above the outstanding amount).
+- Display fee details and status (Paid / Pending).
 
 *Collaborators:*
 - Student
+- Room
 - Payment
-- Booking
 
 ---
 
 ### Payment
 
 *Responsibilities:*
-- Record a payment made towards a student's hostel fee.
-- Store payment details (amount, date, mode, transaction ID).
-- Update the fee's paid/outstanding status.
-- Generate payment receipts.
+- Record a payment (amount, mode, transaction ID) after validating each value.
+- Display the payment and print the receipt.
+- Be created from a Student or from a Booking.
 
 *Collaborators:*
-- Fee
 - Student
+- Fee
+- Booking
 
 ---
 
 ### Leave
 
 *Responsibilities:*
-- Represent a student's leave request.
-- Store leave details (dates, reason, duration).
-- Track the current status of the request (pending, approved, rejected).
-- Record the decision made by the Warden/Admin and notify the student of status changes.
+- Represent a student's leave request (from date, to date, reason, all required).
+- Track the status (Pending, Approved, Rejected).
+- Record the Warden's decision.
 
 *Collaborators:*
 - Student
+- Warden
 
 ---
 
-### Attendance
+### Visitor
 
 *Responsibilities:*
-- Record a student's daily attendance.
-- Store attendance date and status (Present/Absent).
-- Update attendance records when required.
-- Provide attendance information for a student.
+- Store the visitor's name and the student being visited.
+- Track the status of the request (Pending, Approved).
+- Be approved by the Warden.
 
 *Collaborators:*
 - Student
+- Warden
 
 ---
 
-### Friend
+### HostelNoticeBoard
 
 *Responsibilities:*
-- Store visitor details such as name, contact number, and identification details.
-- Record the student whom the friend wants to visit.
-- Store visit date and time.
-- Record the purpose of the visit.
-- Maintain visitor entry and exit information.
-- Track the current status of the visit.
+- Post a hostel notice and count the notices posted.
+- Allow only one thread at a time to post or read the count (synchronized).
 
 *Collaborators:*
-- Student
+- NotificationThread
+- Warden
+
+---
+
+### NotificationThread (extends Thread)
+
+*Responsibilities:*
+- Run in a separate thread and post a message on the notice board.
+- Validate that the message and the board are provided.
+
+*Collaborators:*
+- HostelNoticeBoard
 
 ---
 
 ## 3. Class Relationships
 
--   A Student can make one or more Bookings.
--   A Booking is associated with exactly one Room.
--   A confirmed Booking results in a Fee being generated for the
-    Student.
--   A Fee can have one or more Payments made against it.
--   A Student can submit one or more Leave requests.
--   A Student can have multiple Attendance records.
--   Each Attendance record belongs to one Student.
--   A Student can register one or more Friends as visitors.
--   A Friend can visit a Student at the hostel.
--   A Friend visit records the visit date, time, purpose, and entry/exit
-    details.
--   Room availability updates whenever a Booking is created, cancelled,
-    or completed.
+- Student and Warden inherit from the abstract class HostelMember.
+- NotificationThread inherits from Thread.
+- The hostel has 17 rooms (5 two-sharing, 8 three-sharing, 4 four-sharing) with 50 beds in total.
+- A Room holds 2, 3 or 4 Students depending on its capacity, and a Student lives in zero or one Room.
+- A Booking links exactly one Student with one Room.
+- Each Student has exactly one Fee, and the amount of the Fee depends on the student's Room.
+- A Student can make zero or more Payments, and every Payment reduces the outstanding Fee.
+- The Warden can apply a one-time late penalty to a Fee.
+- A Student can have a Leave request, which the Warden approves or rejects.
+- A Student can register a Visitor, which the Warden approves.
+- The Warden marks each Student's attendance and can reset a Student's password.
+- Two NotificationThreads post notices to the same HostelNoticeBoard at start-up, and the Warden posts more through the menu.
