@@ -217,16 +217,30 @@ class Fee {
 
     private Student student;
     private double paidAmount = 0;
-
+    static final double LATE_PENALTY = 500.0;
+    private boolean penaltyApplied = false;
     Fee(Student student) {
         if (student == null) throw new IllegalArgumentException("Student is required.");
         this.student = student;
     }
 
-    double getTotalFee() {
-        return student.getRoom() == null ? 0 : student.getRoom().getSemesterFee();
-    }
+   double getTotalFee() {
+    return student.getRoom() == null ? 0
+            : student.getRoom().getSemesterFee()
+            + (penaltyApplied ? LATE_PENALTY : 0);
+}
+void applyLatePenalty() {
+    if (student.getRoom() == null)
+        throw new IllegalStateException("Student has no booked room.");
 
+    if (penaltyApplied)
+        throw new IllegalStateException("Late penalty is already applied.");
+
+    if (getOutstanding() <= 0)
+        throw new IllegalStateException("Student has no outstanding fee.");
+
+    penaltyApplied = true;
+}
     double getOutstanding() {
         return getTotalFee() - paidAmount;
     }
@@ -250,6 +264,8 @@ class Fee {
             System.out.println("Fee will be fixed after room booking.");
             return;
         }
+        System.out.println("Room fee: Rs. " + student.getRoom().getSemesterFee());
+        System.out.println("Late penalty: Rs. " + (penaltyApplied ? LATE_PENALTY : 0));
         System.out.println("Total fee: Rs. " + getTotalFee());
         System.out.println("Paid: Rs. " + paidAmount);
         System.out.println("Outstanding: Rs. " + getOutstanding());
@@ -694,6 +710,16 @@ public class HostelManagementSystem {
                         student.getFee().display();
                         System.out.println("--- Payment History ---");
                         student.showPayments();
+                        if (readText("Fee overdue? Apply Rs. " + Fee.LATE_PENALTY
+                           + " late penalty? (yes/no): ").equalsIgnoreCase("yes")) {
+                        try {
+                                student.getFee().applyLatePenalty();
+                                 System.out.println("Late penalty applied once.");
+                                 student.getFee().display();
+                        } catch (IllegalStateException e) {
+                        System.out.println("Error: " + e.getMessage());
+    }
+}
                     }
                     break;
                 }
